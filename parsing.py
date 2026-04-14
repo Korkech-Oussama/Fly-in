@@ -15,7 +15,7 @@ class Parser:
     def parse(self)-> List[list]:
 
         try:
-            with open("maps/easy/01_linear_path.txt") as map:
+            with open("maps/hard/01_maze_nightmare.txt") as map:
                 lines = map.readlines()
         except (FileExistsError, Exception) as e:
             print(f"Error {e}")
@@ -83,11 +83,11 @@ class Parser:
                 raise ValueError("There must be exactly one end_hub: zone")
 
             #extracting zones metadata for validation
-            zones_data: list = [re.split(r"\s",zone[1].strip(' \n'))
+            zones_data: list = [re.split(r"\s",zone[1].strip(' \n'),maxsplit=3)
                                  for zone in zones]
-            for zone in zones_data:
+            for i ,zone in enumerate(zones_data):
                 if len(zone) > 4 or len(zone) < 3:
-                    raise ValueError("invalid data for zone")
+                    raise ValueError(f"{i}invalid data for zone")
 
             # Making sure there is no duplicates of zone names
             # Creating the Zones and validating the metadata
@@ -101,12 +101,41 @@ class Parser:
 
             if len(zone_names) != len(zones_data):
                 raise ValueError("Each zone must have a unique name")
+            # Extracting metadata inside brackets [zone=..., color=...]
+            metadata_str_list: list = [zone[3] for zone in zones_data]
+            
+            """ Validating the syntax of the metadata
+                Converting Our list to a dictionary to have the key:value
+               structure for easy processing and validation """
+            pattern = r"^\[(?:(?:color|zone)=[\w-]+|(?:max_drones)=\d+|\s+)+\]$"
+            metadata_list: list = []
+            for data in metadata_str_list:
+                if not re.search(pattern, data):
+                    raise ValueError("invalid Metadata Syntax")
+                else:
+                    paires: list = re.findall(r"(\w+)=(\w+)", data)
+                    metadata = dict(paires)
+                    metadata_list.append(metadata)
 
+
+            # validating the key:value
+            zone_types = {'normal', 'blocked', 'restricted', 'priority'}
+            for data in metadata_list:
+                if data.get('zone'):
+                    if data.get('zone') not in zone_types:
+                        raise ValueError(f"Zone types must be one of: {zone_types}")
+                if data.get('max_drones'):
+                    if int(data.get('max_drones')) < 1:
+                        raise ValueError("(max_drones) must be positive integer.")
+            
+
+
+
+                        
         except Exception as e:
             print(e)
             sys.exit(1)
-        return zones_data
-
+        return metadata_list
 if __name__ == "__main__":
 
     try:
@@ -114,6 +143,7 @@ if __name__ == "__main__":
         lines = parser.process_zones()
         print(lines)
         print(parser.nb_drones)
-        print(parser.zones)
+        # for zone in parser.zones:
+        #     print(zone.name)
     except ValueError as e:
         print(e)
