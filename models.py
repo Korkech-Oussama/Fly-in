@@ -17,3 +17,6 @@ class Connection:
     def __init__(self, zone_1_2: str):
         self.zone_1_2 = zone_1_2
         self.max_link_capacity =1
+
+    def __str__(self):
+        return f"{self.zone_1_2} , {self.max_link_capacity}"

@@ -1,5 +1,6 @@
 import sys
 import re
+from functools import reduce
 from typing import List
 from models import Zone, Connection
 
@@ -148,21 +149,46 @@ class Parser:
             else:
                 paires: list = re.findall(pattern, connection)
                 metadata.append(paires)
+        #checking for a Connections that is not defined in zone names
+        zones_name: list = [zone.name for zone in self.zones]
+        connections_names = []
+        for data in metadata:
+            names = map(list, zip(*data))
+            connections_names += names
+        connections_names = [conn[0] for conn in connections_names if conn[0] != '' and not re.search(r"^\d+$", conn[0])]
+        connections_names_set = set(connections_names)
 
-        return metadata
+        if len(connections_names_set) != len(zones_name):
+            raise ValueError("Connections must link only previously defined zones using connection: <zone1>-<zone2>[metadata].")
+
+        # checking for duplicates zones:
+        conn_list_tuple = [item[0] for item in metadata]
+        conn_paires: list = [conn[:-1] for conn in conn_list_tuple]
+        memory_set = set()
+        for conn in conn_paires:
+            item: set = frozenset(conn)
+            if item in memory_set:
+                raise ValueError("The same connection must not appear more than once (e.g., a-b and b-a are considered duplicates).")
+            else:
+                memory_set.add(item)
+
+        for conn in conn_list_tuple:
+            new_connection = Connection(f"{conn[0]}-{conn[1]}")
+            if re.search(r"^\d+$", conn[2]):
+                new_connection.max_link_capacity = int(conn[2])
+            self.connections.append(new_connection)
+        return conn_list_tuple
 
 if __name__ == "__main__":
-
+ 
     try:
         parser = Parser('test')
         lines = parser.process_zones()
         # print(lines)
         # print(parser.nb_drones)
-        # for zone in parser.zones:
-        #     print(zone)
         connections = parser.process_connections()
         print(connections)
-
-
-    except ValueError as e:
+        for conn in parser.connections:
+            print(conn)
+    except (ValueError) as e:
         print(e)
