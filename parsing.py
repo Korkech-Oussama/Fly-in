@@ -120,30 +120,49 @@ class Parser:
 
             # validating the key:value
             zone_types = {'normal', 'blocked', 'restricted', 'priority'}
-            for data in metadata_list:
+            for zone, data in zip(self.zones, metadata_list):
                 if data.get('zone'):
                     if data.get('zone') not in zone_types:
                         raise ValueError(f"Zone types must be one of: {zone_types}")
+                    zone.zone_type = data.get('zone')
                 if data.get('max_drones'):
                     if int(data.get('max_drones')) < 1:
                         raise ValueError("(max_drones) must be positive integer.")
-            
+                    zone.max_drones = data.get('max_drones')
+                if data.get('color'):
+                    zone.color = data.get('color')
 
-
-
-                        
         except Exception as e:
             print(e)
             sys.exit(1)
         return metadata_list
+
+    def process_connections(self):
+        connections_list = [con[1].strip() for con in self.diff_zones_connections()[1]]
+        # validating the connections
+        pattern = r"^(\w+)-(\w+)(?:\s+\[(?:max_link_capacity)=(\d+)\])?$"
+        metadata: list = []
+        for connection in connections_list:
+            if not re.search(pattern, connection):
+                raise ValueError("Syntax Error for Connection")
+            else:
+                paires: list = re.findall(pattern, connection)
+                metadata.append(paires)
+
+        return metadata
+
 if __name__ == "__main__":
 
     try:
         parser = Parser('test')
         lines = parser.process_zones()
-        print(lines)
-        print(parser.nb_drones)
+        # print(lines)
+        # print(parser.nb_drones)
         # for zone in parser.zones:
-        #     print(zone.name)
+        #     print(zone)
+        connections = parser.process_connections()
+        print(connections)
+
+
     except ValueError as e:
         print(e)

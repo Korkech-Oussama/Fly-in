@@ -8,6 +8,8 @@ class Zone:
         self.zone_type: str = 'normal'
         self.color:str = None
         self.max_drones = 1
+    def __str__(self):
+        return f"{self.name}, {self.x, self.y}, {self.cost}, {self.zone_type}, {self.color}, {self.max_drones}"
 
 
 class Connection:

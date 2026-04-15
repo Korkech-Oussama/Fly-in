@@ -47,4 +47,5 @@ connection: bottleneck-final_stretch2
 connection: bottleneck-final_stretch3
 connection: final_stretch1-goal
 connection: final_stretch2-goal
-connection: final_stretch3-goal
+# this is for testing purpos
+connection: final_stretch3-goal [max_link_capacity=1]
