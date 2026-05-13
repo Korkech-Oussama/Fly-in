@@ -1,6 +1,5 @@
 from parser import Parser, ParserError
 from models import Drone, Zone
-from simulation import SimulationVisualizer
 import sys
 
 # ------------------------------------------------------------------ #
@@ -36,8 +35,9 @@ if __name__ == "__main__":
     # print(f"End hub     : {next(z.name for z in parser.zones if getattr(z, 'is_end',   False))}")
     # print(f"Connections : {[c.name for c in parser.connections]}")
 
-    # Initialize the engine
-    engine = SimulationVisualizer(parser, drones)
+    print(parser.graph)
+    # # Initialize the engine
+    # engine = SimulationVisualizer(parser, drones)
     
-    # Start the simulation loop
-    engine.run()
+    # # Start the simulation loop
+    # engine.run()
