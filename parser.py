@@ -369,6 +369,17 @@ class Parser:
         """build a look up table to quiqly find a zone by name"""
         self.name_to_zone = {zone.name: zone for zone in self.zones}
 
+    # def _build_graph(self) -> None:
+    #     """
+    #     Build an undirected adjacency list: {zone_name: [neighbour, ...]}.
+    #     Zone names cannot contain dashes, so splitting on '-' is unambiguous.
+    #     """
+    #     self.graph = {zone.name: [] for zone in self.zones}
+    #     for conn in self.connections:
+    #         zone_a, zone_b = conn.name.split('-', 1)
+    #         self.graph[zone_a].append(zone_b)
+    #         self.graph[zone_b].append(zone_a)
+
     def _build_graph(self) -> None:
         """
         Build an undirected adjacency list: {zone_name: [neighbour, ...]}.
