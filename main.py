@@ -1,5 +1,7 @@
 from parser import Parser, ParserError
 from models import Drone, Zone
+from pathfinding import Pathfinder
+from simulation import SimulationVisualizer
 import sys
 
 # ------------------------------------------------------------------ #
@@ -7,7 +9,7 @@ import sys
 # ------------------------------------------------------------------ #
 
 if __name__ == "__main__":
-    path = sys.argv[1] if len(sys.argv) > 1 else "maps/easy/01_linear_path.txt"
+    path = sys.argv[1] if len(sys.argv) > 1 else "maps/challenger/01_the_impossible_dream.txt"
 
     try:
         parser = Parser(path)
@@ -16,14 +18,22 @@ if __name__ == "__main__":
         print(f"[Parser Error] {e}", file=sys.stderr)
         sys.exit(1)
     try:
+
         start_hub: Zone  = next(z for z in parser.zones if z.is_start)
+        end_hub: Zone =  next(z for z in parser.zones if z.is_end)
+        optimal_path = Pathfinder.get_path(start_hub, end_hub, parser.graph)
+
+        if not optimal_path:
+            print("Fatal Error: No valid path exists to the end hub.")
+            sys.exit(1)
+        
         drones: list = []
         for i in range(parser.nb_drones):
             new_drone = Drone(id=i+1,
                               coord=(start_hub.x, start_hub.y),
                               curr_zone=start_hub)
             new_drone.graph = parser.graph
-            new_drone.zones = parser.zones[1:]
+            new_drone.zones = list(optimal_path[1:])
             drones.append(new_drone)
         start_hub.zone_drones_count = parser.nb_drones
     except Exception as e:
@@ -35,9 +45,8 @@ if __name__ == "__main__":
     # print(f"End hub     : {next(z.name for z in parser.zones if getattr(z, 'is_end',   False))}")
     # print(f"Connections : {[c.name for c in parser.connections]}")
 
-    print(parser.graph)
     # # Initialize the engine
-    # engine = SimulationVisualizer(parser, drones)
+    engine = SimulationVisualizer(parser, drones)
     
     # # Start the simulation loop
-    # engine.run()
+    engine.run()
